@@ -41,7 +41,6 @@ public interface ApplicationService
     @Deprecated
     void invalidate( ApplicationKey key );
 
-    @Deprecated
     void invalidate( ApplicationKey key, ApplicationInvalidationLevel level );
 
     @Deprecated

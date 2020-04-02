@@ -72,10 +72,9 @@ final class ApplicationRegistry
 
     public void invalidate( final ApplicationKey key, final ApplicationInvalidationLevel level )
     {
-        LOG.debug( "Invalidating app {}", key );
         applications.computeIfPresent( key, ( k, v ) -> {
             callInvalidators( k, level );
-            v.setConfig( null );
+            v.unlatch();
             return null;
         } );
     }
@@ -97,7 +96,8 @@ final class ApplicationRegistry
                     callInvalidators( k, ApplicationInvalidationLevel.CACHE );
                 }
                 LOG.debug( "Configure and unlatch app {}", key );
-                v.setConfig( configuration );
+                v.application.setConfig( configuration );
+                v.unlatch();
                 return v;
             }
         } );
@@ -131,7 +131,7 @@ final class ApplicationRegistry
         {
             return null;
         }
-        LOG.debug( "Create app {} {} bundle {}", configuration != null ? "configured" : "latched", key, bundle.getBundleId() );
+        LOG.debug( "Create app {} {}", configuration == null ? "configured" : "latched", key );
 
         return new ApplicationWrapper( this.factory.create( bundle, configuration ), configuration != null );
     }
@@ -192,6 +192,11 @@ final class ApplicationRegistry
             this.application = application;
 
             this.latch = new CountDownLatch( configured ? 0 : 1 );
+        }
+
+        void unlatch()
+        {
+            latch.countDown();
         }
 
         @Override
@@ -311,13 +316,14 @@ final class ApplicationRegistry
                     }
                 }
                 final boolean releasedNormally = latch.await( 10, TimeUnit.SECONDS );
+                latch.countDown(); //release all waiting threads even if released by timeout
 
                 if ( !releasedNormally )
                 {
                     LOG.warn( "App {} was not configured properly. Fallback to ConfigurationAdmin", application.getKey() );
                     try
                     {
-                        setConfig( loadConfig( application.getBundle() ) );
+                        application.setConfig( loadConfig( application.getBundle() ) );
                     }
                     catch ( IOException e )
                     {
@@ -340,12 +346,6 @@ final class ApplicationRegistry
             {
                 throw new RuntimeException( "App was not fully configured due to interruption", e );
             }
-        }
-
-        public void setConfig( final Configuration config )
-        {
-            application.setConfig( config );
-            latch.countDown();
         }
 
         @Override
