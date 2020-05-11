@@ -645,7 +645,15 @@ public final class ApplicationServiceImpl
     @Override
     public void setConfiguration( final ApplicationKey key, final Configuration configuration )
     {
-        registry.setConfiguration( key, configuration );
+        final Application application = this.registry.get( key );
+
+        applicationListenerHub.deactivated( application );
+
+        registry.invalidate( key, ApplicationInvalidationLevel.FULL );
+
+        this.registry.setConfiguration( key, configuration );
+
+        applicationListenerHub.activated( application );
     }
 
     @Reference

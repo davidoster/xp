@@ -75,11 +75,11 @@ final class ApplicationRegistry
         } );
     }
 
-    public void setConfiguration( final ApplicationKey key, final Configuration configuration )
+    public Application setConfiguration( final ApplicationKey key, final Configuration configuration )
     {
         requireNonNull( configuration, "configuration can't be null" );
 
-        applications.compute( key, ( k, v ) -> {
+        return applications.compute( key, ( k, v ) -> {
             if ( v == null )
             {
                 return createApp( k, configuration );
