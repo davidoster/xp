@@ -20,10 +20,16 @@ public abstract class BaseProjectHandler
 
     public final Object execute()
     {
+        validate();
         return this.doExecute();
     }
 
     protected abstract Object doExecute();
+
+    protected void validate()
+    {
+
+    }
 
     protected Locale buildLanguage( final String value )
     {

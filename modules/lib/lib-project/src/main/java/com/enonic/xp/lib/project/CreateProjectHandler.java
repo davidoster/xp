@@ -2,6 +2,8 @@ package com.enonic.xp.lib.project;
 
 import java.util.Locale;
 
+import com.google.common.base.Preconditions;
+
 import com.enonic.xp.lib.project.command.ApplyProjectLanguageCommand;
 import com.enonic.xp.lib.project.command.ApplyProjectReadAccessCommand;
 import com.enonic.xp.lib.project.mapper.ProjectMapper;
@@ -10,6 +12,8 @@ import com.enonic.xp.project.Project;
 import com.enonic.xp.project.ProjectName;
 import com.enonic.xp.project.ProjectPermissions;
 import com.enonic.xp.script.ScriptValue;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 public final class CreateProjectHandler
     extends BaseProjectHandler
@@ -65,6 +69,11 @@ public final class CreateProjectHandler
             displayName( this.displayName ).
             description( this.description ).
             build();
+    }
+
+    protected void validate()
+    {
+        Preconditions.checkArgument( !nullToEmpty( this.displayName ).isBlank(), "Project display name is required" );
     }
 
     public void setId( final String value )
