@@ -33,26 +33,4 @@ public class ModifyProjectHandlerTest
         runFunction( "/test/ModifyProjectHandlerTest.js", "modifyLanguage" );
     }
 
-  /*  @Test
-    public void modifyProjectWithoutLanguage()
-        throws Exception
-    {
-        runFunction( "/test/ModifyProjectHandlerTest.js", "modifyProjectWithoutLanguage" );
-    }
-
-    @Test
-    public void modifyProjectWithoutPermissions()
-        throws Exception
-    {
-        runFunction( "/test/ModifyProjectHandlerTest.js", "modifyProjectWithoutPermissions" );
-    }
-
-    @Test
-    public void modifyProjectWithoutReadAccess()
-        throws Exception
-    {
-        runFunction( "/test/ModifyProjectHandlerTest.js", "modifyProjectWithoutReadAccess" );
-    }
-*/
-
 }

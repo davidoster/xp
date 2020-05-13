@@ -13,8 +13,6 @@ import com.enonic.xp.project.Project;
 import com.enonic.xp.project.ProjectName;
 import com.enonic.xp.project.ProjectPermissions;
 
-import static com.google.common.base.Strings.nullToEmpty;
-
 public final class ModifyProjectHandler
     extends BaseProjectHandler
 {
@@ -80,7 +78,7 @@ public final class ModifyProjectHandler
 
     protected void validate()
     {
-        Preconditions.checkArgument( !nullToEmpty( this.displayName ).isBlank(), "Project display name is required" );
+        Preconditions.checkArgument( this.displayName == null || !this.displayName.isBlank(), "Project display name cannot be empty" );
     }
 
     public void setId( final String value )
