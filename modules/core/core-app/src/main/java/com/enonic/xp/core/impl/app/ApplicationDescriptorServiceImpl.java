@@ -20,15 +20,9 @@ import com.enonic.xp.app.ApplicationKey;
 public class ApplicationDescriptorServiceImpl
     implements ApplicationDescriptorService, SynchronousBundleListener
 {
-
     private final static Logger LOG = LoggerFactory.getLogger( ApplicationDescriptorServiceImpl.class );
 
-    private final Map<ApplicationKey, ApplicationDescriptor> appDescriptorMap;
-
-    public ApplicationDescriptorServiceImpl()
-    {
-        this.appDescriptorMap = new ConcurrentHashMap<>();
-    }
+    private final Map<ApplicationKey, ApplicationDescriptor> appDescriptorMap = new ConcurrentHashMap<>();
 
     @Override
     public ApplicationDescriptor get( final ApplicationKey key )

@@ -18,38 +18,22 @@ public final class ApplicationListenerHub
 
     public void activated( final Application app )
     {
-        notifyActivated( app );
+        listeners.forEach( listener -> listener.activated( app ) );
     }
 
     public void deactivated( final Application app )
     {
-        notifyDeactivated( app );
-    }
-
-    private void notifyActivated( final Application app )
-    {
-        for ( final ApplicationListener listener : this.listeners )
-        {
-            listener.activated( app );
-        }
-    }
-
-    private void notifyDeactivated( final Application app )
-    {
-        for ( final ApplicationListener listener : this.listeners )
-        {
-            listener.deactivated( app );
-        }
+        listeners.forEach( listener -> listener.deactivated( app ) );
     }
 
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
     public void addListener( final ApplicationListener listener )
     {
-        this.listeners.add( listener );
+        listeners.add( listener );
     }
 
     public void removeListener( final ApplicationListener listener )
     {
-        this.listeners.remove( listener );
+        listeners.remove( listener );
     }
 }

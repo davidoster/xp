@@ -1,5 +1,7 @@
 package com.enonic.xp.elasticsearch.impl;
 
+import java.util.Iterator;
+
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateRequest;
@@ -17,8 +19,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.UnmodifiableIterator;
 
 import com.enonic.xp.cluster.Cluster;
 import com.enonic.xp.cluster.ClusterHealth;
@@ -40,7 +40,7 @@ public final class ElasticsearchCluster
 
     private final BundleContext bundleContext;
 
-    private volatile ServiceRegistration<Client> clientServiceRegistration;
+    private ServiceRegistration<Client> clientServiceRegistration;
 
     @Activate
     public ElasticsearchCluster( final BundleContext bundleContext, @Reference final Node node )
@@ -49,11 +49,16 @@ public final class ElasticsearchCluster
         this.node = node;
     }
 
+    @Activate
+    public void activate()
+    {
+        clientServiceRegistration = bundleContext.registerService( Client.class, this.node.client(), null );
+    }
+
     @Deactivate
-    @SuppressWarnings("unused")
     public void deactivate()
     {
-        unregisterClient();
+        clientServiceRegistration.unregister();
     }
 
     @Override
@@ -65,7 +70,7 @@ public final class ElasticsearchCluster
     @Override
     public boolean isEnabled()
     {
-        return this.clientServiceRegistration != null;
+        return true;
     }
 
     @Override
@@ -106,13 +111,13 @@ public final class ElasticsearchCluster
             cluster().
             state( clusterStateRequest ).
             actionGet();
-        final UnmodifiableIterator<IndexMetaData> indiceIterator = clusterStateResponse.getState().
+        final Iterator<IndexMetaData> indicesIterator = clusterStateResponse.getState().
             getMetaData().
             getIndices().
             valuesIt();
-        while ( indiceIterator.hasNext() )
+        while ( indicesIterator.hasNext() )
         {
-            final IndexMetaData indexMetaData = indiceIterator.next();
+            final IndexMetaData indexMetaData = indicesIterator.next();
             if ( IndexMetaData.State.CLOSE == indexMetaData.getState() )
             {
                 return false;
@@ -138,42 +143,11 @@ public final class ElasticsearchCluster
     @Override
     public void enable()
     {
-        registerClient();
     }
 
     @Override
     public void disable()
     {
-        unregisterClient();
-    }
-
-    private synchronized void registerClient()
-    {
-        if ( this.clientServiceRegistration != null )
-        {
-            return;
-        }
-
-        LOG.info( "Cluster operational, register elasticsearch-client" );
-        this.clientServiceRegistration = this.bundleContext.registerService( Client.class, this.node.client(), null );
-    }
-
-    private synchronized void unregisterClient()
-    {
-        if ( this.clientServiceRegistration == null )
-        {
-            return;
-        }
-
-        try
-        {
-            LOG.info( "Cluster not operational, unregister elasticsearch-client" );
-            this.clientServiceRegistration.unregister();
-        }
-        finally
-        {
-            this.clientServiceRegistration = null;
-        }
     }
 
     private ClusterHealthResponse doGetHealth()
@@ -192,7 +166,7 @@ public final class ElasticsearchCluster
             indices( "" ).
             masterNodeTimeout( CLUSTER_HEALTH_TIMEOUT );
 
-        final ClusterStateResponse response = this.node.client().admin().cluster().state( clusterStateRequest ).actionGet();
+        final ClusterStateResponse response = node.client().admin().cluster().state( clusterStateRequest ).actionGet();
 
         return response.getState().getNodes();
     }
