@@ -27,7 +27,6 @@ public class ClusterManagerImpl
 
     private static final List<ClusterId> DEFAULT_REQUIRED_INSTANCES = List.of( ClusterId.from( "elasticsearch" ) );
 
-
     private final Clusters instances;
 
     private final List<ClusterValidator> validators = List.of( new HealthValidator(), new ClusterMembersValidator() );

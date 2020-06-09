@@ -65,11 +65,7 @@ public class NodeRepositoryServiceImpl
         {
             throw new RepositoryException( "Unable to initialize repositories" );
         }
-
-        final String storageIndexName = IndexNameResolver.resolveStorageIndexName( repositoryId );
-        final String searchIndexName = IndexNameResolver.resolveSearchIndexName( repositoryId );
-
-        return indexServiceInternal.indicesExists( storageIndexName, searchIndexName );
+        return indexServiceInternal.indicesExists( IndexNameResolver.resolveIndexNames( repositoryId ).toArray( String[]::new ) );
     }
 
     private void createIndexes( final CreateRepositoryParams params )

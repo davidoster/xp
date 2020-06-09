@@ -1,29 +1,22 @@
 package com.enonic.xp.repo.impl.elasticsearch.snapshot;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.Arrays;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotAction;
 import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotRequestBuilder;
 import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.enonic.xp.cluster.ClusterManager;
 import com.enonic.xp.node.RestoreResult;
+import com.enonic.xp.repo.impl.index.IndexServiceInternal;
+import com.enonic.xp.repo.impl.repository.IndexNameResolver;
 import com.enonic.xp.repository.RepositoryId;
 import com.enonic.xp.repository.RepositoryIds;
-import com.enonic.xp.util.Exceptions;
 
 public class SnapshotRestoreExecutor
     extends AbstractSnapshotExecutor
 {
-    private static final Logger LOG = LoggerFactory.getLogger( SnapshotRestoreExecutor.class );
-
-    private final ClusterManager clusterManager;
+    private final IndexServiceInternal indexServiceInternal;
 
     private final String snapshotName;
 
@@ -32,7 +25,7 @@ public class SnapshotRestoreExecutor
     private SnapshotRestoreExecutor( final Builder builder )
     {
         super( builder );
-        clusterManager = builder.clusterManager;
+        indexServiceInternal = builder.indexServiceInternal;
         repositoryToRestore = builder.repositoryToRestore;
         this.snapshotName = builder.snapshotName;
     }
@@ -49,83 +42,38 @@ public class SnapshotRestoreExecutor
         }
     }
 
-    private void addResult( final RestoreResult.Builder builder, RestoreResult result )
-    {
-        final RestoreResult tempResults = builder.build();
-
-        if ( result.isFailed() )
-        {
-            builder.failed( true );
-        }
-
-        final List<String> indices = new ArrayList<>();
-        indices.addAll( tempResults.getIndices() );
-        indices.addAll( result.getIndices() );
-
-        builder.indices( indices );
-        builder.message( tempResults.getMessage() != null ? tempResults.getMessage() + " | " + result.getMessage() : result.getMessage() );
-        builder.name( result.getName() );
-    }
-
     private RestoreResult restoreAllRepositories()
     {
         final RepositoryIds repositoryIds = getRepositories( true );
+        final String[] indices = IndexNameResolver.resolveIndexNames( repositoryIds ).toArray( String[]::new );
 
+        indexServiceInternal.closeIndices( indices );
         try
         {
-            //Closes current indices and wait for ES provider to be disabled
-            closeIndices( repositoryIds );
-            while ( clusterManager.isHealthy() )
-            {
-                LOG.info( "Waiting for cluster providers to be deactivated to initiate restore" );
-                Thread.sleep( 1000L );
-            }
-
-            //Restore indices
-            return doRestoreIndices( Collections.emptySet() );
-        }
-        catch ( InterruptedException e )
-        {
-            throw Exceptions.unchecked( e );
+            return doRestoreIndices();
         }
         finally
         {
-            openIndices( repositoryIds );
+            indexServiceInternal.openIndices( indices );
         }
     }
 
     private RestoreResult restoreSingleRepository( final RepositoryId repositoryId )
     {
-        final RepositoryIds repositoryIds = RepositoryIds.from( repositoryId );
+        final String[] indices = IndexNameResolver.resolveIndexNames( repositoryId ).toArray( String[]::new );
+
+        indexServiceInternal.closeIndices( indices );
         try
         {
-            //Closes indices and wait for ES provider to be disabled
-            closeIndices( repositoryIds );
-            while ( clusterManager.isHealthy() )
-            {
-                Thread.sleep( 1000L );
-            }
-
-            //Restore indice
-            return doRestoreRepo( this.repositoryToRestore );
-        }
-        catch ( InterruptedException e )
-        {
-            throw Exceptions.unchecked( e );
+            return doRestoreIndices( indices );
         }
         finally
         {
-            openIndices( repositoryIds );
+            indexServiceInternal.openIndices( indices );
         }
     }
 
-    private RestoreResult doRestoreRepo( final RepositoryId repositoryId )
-    {
-        final Set<String> indexNames = getIndexNames( repositoryId );
-        return doRestoreIndices( indexNames );
-    }
-
-    private RestoreResult doRestoreIndices( final Set<String> indices )
+    private RestoreResult doRestoreIndices( final String... indices )
     {
         try
         {
@@ -136,21 +84,21 @@ public class SnapshotRestoreExecutor
         {
             return RestoreResult.create().
                 repositoryId( repositoryToRestore ).
-                indices( indices ).
+                indices( Arrays.asList( indices ) ).
                 failed( true ).
                 name( snapshotName ).
-                message( "Could not restore snapshot: " + e.toString() + " for indices: " + indices ).
+                message( "Could not restore snapshot: " + e.toString() + " for indices: " + Arrays.asList( indices ) ).
                 build();
         }
     }
 
-    private RestoreSnapshotResponse executeRestoreRequest( final Set<String> indices )
+    private RestoreSnapshotResponse executeRestoreRequest( final String... indices )
     {
         final RestoreSnapshotResponse response;
         final RestoreSnapshotRequestBuilder restoreSnapshotRequestBuilder =
             new RestoreSnapshotRequestBuilder( this.client.admin().cluster(), RestoreSnapshotAction.INSTANCE ).
                 setRestoreGlobalState( false ).
-                setIndices( indices.toArray( new String[0] ) ).
+                setIndices( indices ).
                 setRepository( this.snapshotRepositoryName ).
                 setSnapshot( this.snapshotName ).
                 setWaitForCompletion( true );
@@ -167,15 +115,15 @@ public class SnapshotRestoreExecutor
     public static final class Builder
         extends AbstractSnapshotExecutor.Builder<Builder>
     {
-        private ClusterManager clusterManager;
+        private IndexServiceInternal indexServiceInternal;
 
         private String snapshotName;
 
         private RepositoryId repositoryToRestore;
 
-        public Builder clusterManager( final ClusterManager clusterManager )
+        public Builder indexServiceInternal( final IndexServiceInternal indexServiceInternal )
         {
-            this.clusterManager = clusterManager;
+            this.indexServiceInternal = indexServiceInternal;
             return this;
         }
 

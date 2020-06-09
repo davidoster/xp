@@ -36,6 +36,7 @@ import com.enonic.xp.node.SnapshotResult;
 import com.enonic.xp.node.SnapshotResults;
 import com.enonic.xp.repo.impl.RepositoryEvents;
 import com.enonic.xp.repo.impl.config.RepoConfiguration;
+import com.enonic.xp.repo.impl.index.IndexServiceInternal;
 import com.enonic.xp.repo.impl.node.NodeHelper;
 import com.enonic.xp.repository.RepositoryService;
 import com.enonic.xp.snapshot.SnapshotService;
@@ -55,6 +56,8 @@ public class SnapshotServiceImpl
     private EventPublisher eventPublisher;
 
     private ClusterManager clusterManager;
+
+    private IndexServiceInternal indexServiceInternal;
 
     @Override
     public SnapshotResult snapshot( final SnapshotParams snapshotParams )
@@ -94,7 +97,7 @@ public class SnapshotServiceImpl
             snapshotName( restoreParams.getSnapshotName() ).
             client( this.client ).
             repositoryService( this.repositoryService ).
-            clusterManager( this.clusterManager ).
+            indexServiceInternal( this.indexServiceInternal ).
             snapshotRepositoryName( SNAPSHOT_REPOSITORY_NAME ).
             build().
             execute();
@@ -322,8 +325,8 @@ public class SnapshotServiceImpl
     }
 
     @Reference
-    public void setClusterManager( final ClusterManager clusterManager )
+    public void setIndexServiceInternal( final IndexServiceInternal indexServiceInternal )
     {
-        this.clusterManager = clusterManager;
+        this.indexServiceInternal = indexServiceInternal;
     }
 }
