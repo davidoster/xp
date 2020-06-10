@@ -8,8 +8,10 @@ public interface Cluster
 
     ClusterNodes getNodes();
 
+    @Deprecated
     void enable();
 
+    @Deprecated
     void disable();
 
     boolean isEnabled();
