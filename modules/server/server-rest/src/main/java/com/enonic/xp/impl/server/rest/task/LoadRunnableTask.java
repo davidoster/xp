@@ -136,14 +136,12 @@ public class LoadRunnableTask
 
     private void initializeRepo( final Repository repository )
     {
-        if ( !this.nodeRepositoryService.isInitialized( repository.getId() ) )
-        {
-            final CreateRepositoryParams createRepositoryParams = CreateRepositoryParams.create().
-                repositoryId( repository.getId() ).
-                repositorySettings( repository.getSettings() ).
-                build();
-            this.nodeRepositoryService.create( createRepositoryParams );
-        }
+        final CreateRepositoryParams createRepositoryParams = CreateRepositoryParams.create().
+            failIfExists( false ).
+            repositoryId( repository.getId() ).
+            repositorySettings( repository.getSettings() ).
+            build();
+        this.nodeRepositoryService.create( createRepositoryParams );
     }
 
     private SystemLoadResultJson doLoadFromSystemDump( final SystemLoadRequestJson request )

@@ -95,14 +95,12 @@ public class ImportRunnableTask
         this.repositoryService.invalidateAll();
         for ( Repository repository : repositoryService.list() )
         {
-            if ( !this.nodeRepositoryService.isInitialized( repository.getId() ) )
-            {
-                final CreateRepositoryParams createRepositoryParams = CreateRepositoryParams.create().
-                    repositoryId( repository.getId() ).
-                    repositorySettings( repository.getSettings() ).
-                    build();
-                this.nodeRepositoryService.create( createRepositoryParams );
-            }
+            final CreateRepositoryParams createRepositoryParams = CreateRepositoryParams.create().
+                failIfExists( false ).
+                repositoryId( repository.getId() ).
+                repositorySettings( repository.getSettings() ).
+                build();
+            this.nodeRepositoryService.create( createRepositoryParams );
         }
     }
 

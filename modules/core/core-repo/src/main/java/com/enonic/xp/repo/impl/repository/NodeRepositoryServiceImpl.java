@@ -41,8 +41,6 @@ public class NodeRepositoryServiceImpl
     {
         createIndexes( params );
         applyMappings( params );
-
-        checkClusterHealth();
     }
 
     @Override
@@ -61,7 +59,7 @@ public class NodeRepositoryServiceImpl
     @Override
     public boolean isInitialized( final RepositoryId repositoryId )
     {
-        if ( !checkClusterHealth() )
+        if ( !waitForYellowStatus() )
         {
             throw new RepositoryException( "Unable to initialize repositories" );
         }
@@ -185,7 +183,7 @@ public class NodeRepositoryServiceImpl
         throw new IllegalArgumentException( "Cannot resolve index name for indexType [" + indexType.getName() + "]" );
     }
 
-    private boolean checkClusterHealth()
+    private boolean waitForYellowStatus()
     {
         try
         {

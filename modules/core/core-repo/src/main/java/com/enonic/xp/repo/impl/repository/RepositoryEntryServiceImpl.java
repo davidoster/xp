@@ -97,13 +97,9 @@ public class RepositoryEntryServiceImpl
     @Override
     public Repository getRepositoryEntry( final RepositoryId repositoryId )
     {
-        if ( this.nodeRepositoryService.isInitialized( SystemConstants.SYSTEM_REPO.getId() ) )
-        {
-            final NodeId nodeId = NodeId.from( repositoryId.toString() );
-            final Node node = this.nodeStorageService.get( nodeId, createInternalContext() );
-            return node == null ? null : RepositoryNodeTranslator.toRepository( node );
-        }
-        return null;
+        final NodeId nodeId = NodeId.from( repositoryId.toString() );
+        final Node node = this.nodeStorageService.get( nodeId, createInternalContext() );
+        return node == null ? null : RepositoryNodeTranslator.toRepository( node );
     }
 
     @Override

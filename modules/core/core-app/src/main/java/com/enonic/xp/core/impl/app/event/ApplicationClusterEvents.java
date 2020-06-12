@@ -37,7 +37,6 @@ public class ApplicationClusterEvents
             distributed( true ).
             value( EVENT_TYPE_KEY, UNINSTALLED ).
             value( APPLICATION_KEY_PARAM, applicationKey.getName() ).
-            localOrigin( true ).
             build();
     }
 
@@ -58,7 +57,6 @@ public class ApplicationClusterEvents
             value( EVENT_TYPE_KEY, eventType ).
             value( APPLICATION_KEY_PARAM, applicationKey.getName() ).
             value( STARTED_PARAM, value ).
-            localOrigin( true ).
             build();
     }
 }

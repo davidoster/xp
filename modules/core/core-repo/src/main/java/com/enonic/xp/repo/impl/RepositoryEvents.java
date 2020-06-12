@@ -37,7 +37,6 @@ public class RepositoryEvents
         return Event.create( eventType ).
             distributed( true ).
             value( REPOSITORY_ID_KEY, repositoryId.toString() ).
-            localOrigin( true ).
             build();
     }
 
@@ -45,7 +44,6 @@ public class RepositoryEvents
     {
         return Event.create( RESTORED_EVENT_TYPE ).
             distributed( true ).
-            localOrigin( true ).
             build();
     }
 
@@ -53,7 +51,6 @@ public class RepositoryEvents
     {
         return Event.create( RESTORE_INITIALIZED_EVENT_TYPE ).
             distributed( true ).
-            localOrigin( true ).
             build();
     }
 }

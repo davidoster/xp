@@ -17,12 +17,15 @@ public class CreateRepositoryParams
 
     private final ChildOrder rootChildOrder;
 
+    private final boolean failIfExists;
+
     private CreateRepositoryParams( final Builder builder )
     {
         repositoryId = builder.repositoryId;
         repositorySettings = builder.repositorySettings == null ? RepositorySettings.create().build() : builder.repositorySettings;
         rootPermissions = builder.rootPermissions;
         rootChildOrder = builder.rootChildOrder;
+        failIfExists = builder.failIfExists;
     }
 
     public RepositoryId getRepositoryId()
@@ -45,6 +48,11 @@ public class CreateRepositoryParams
         return rootChildOrder;
     }
 
+    public boolean isFailIfExists()
+    {
+        return failIfExists;
+    }
+
     public static Builder create()
     {
         return new Builder();
@@ -63,13 +71,14 @@ public class CreateRepositoryParams
         }
         final CreateRepositoryParams that = (CreateRepositoryParams) o;
         return Objects.equals( repositoryId, that.repositoryId ) && Objects.equals( repositorySettings, that.repositorySettings ) &&
-            Objects.equals( rootPermissions, that.rootPermissions ) && Objects.equals( rootChildOrder, that.rootChildOrder );
+            Objects.equals( rootPermissions, that.rootPermissions ) && Objects.equals( rootChildOrder, that.rootChildOrder ) &&
+            failIfExists == that.failIfExists;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( repositoryId, repositorySettings, rootPermissions, rootChildOrder );
+        return Objects.hash( repositoryId, repositorySettings, rootPermissions, rootChildOrder, failIfExists );
     }
 
     public static final class Builder
@@ -81,6 +90,8 @@ public class CreateRepositoryParams
         private AccessControlList rootPermissions = RepositoryConstants.DEFAULT_REPO_PERMISSIONS;
 
         private ChildOrder rootChildOrder = RepositoryConstants.DEFAULT_CHILD_ORDER;
+
+        private boolean failIfExists = true;
 
         private Builder()
         {
@@ -113,6 +124,12 @@ public class CreateRepositoryParams
             {
                 this.rootChildOrder = rootChildOrder;
             }
+            return this;
+        }
+
+        public Builder failIfExists( final boolean failIfExists )
+        {
+            this.failIfExists = failIfExists;
             return this;
         }
 
